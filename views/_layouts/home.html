@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>{{block 'title'}}My Site{{/block}}</title>
+    <link
+      rel="stylesheet"
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="/node_modules/jquery-ui-dist/jquery-ui.min.css"
+    />
+    {{block 'head'}}{{/block}}
+  </head>
+
+  <body>
+    <div class="wrapper">
+      {{include '../_partials/header.html'}}
+      <div class="container">
+        <div class="offset-md-1 col-md-10 offset-md-1">
+          {{include '../_partials/search_alert.html'}}
+        </div>
+      </div>
+      {{block 'body'}}{{/block}} {{include'../_partials/footer.html'}}
+    </div>
+
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="/node_modules/jquery-ui-dist/jquery-ui.min.js"></script>
+    <script src="/public/js/pagination.js"></script>
+
+    {{block 'script'}}{{/block}}
+    <script>
+      $("#myAutocomplete").keyup(function (event) {
+        event.preventDefault();
+        var title = $("#myAutocomplete").val();
+        var re = /^[0-9a-zA-Z]*$/;
+        if (!re.test(title)) {
+          return;
+        }
+
+        $.ajax({
+          url: "/",
+          type: "post",
+          dataType: "json",
+          data: { title: title },
+          success: function (data) {
+            var code = data.err_code;
+            if (code === 0) {
+              $("#myAutocomplete").catcomplete({
+                delay: 0,
+                source: data.topic,
+              });
+            }
+          },
+        });
+      });
+
+      $("#search_close").click(function () {
+        $(".search_alert").removeClass("show");
+      });
+
+      $("#form_close").click(function () {
+        $(".form_alert").removeClass("show");
+      });
+
+      $("#success_close").click(function () {
+        $(".success_alert").removeClass("show");
+      });
+
+      $("#search_form").submit(function (e) {
+        e.preventDefault();
+        var result = $("#myAutocomplete").val();
+        if (result.trim().length === 0) {
+          $("#myAutocomplete").val("");
+          $(".search_alert").addClass("show");
+          $("#search_message").text("This search bar can't be empty!");
+        } else {
+          var title = $.trim($("#myAutocomplete").val());
+          var formData = new FormData();
+          formData.append("title", title);
+
+          $.ajax({
+            url: "/search",
+            type: "post",
+            dataType: "json",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+              var code = data.err_code;
+              console.log(code);
+              if (code === 0) {
+                window.location.href = `/topic/${data.id}`;
+              } else if (code === 1) {
+                $("#myAutocomplete").val("");
+                $(".search_alert").addClass("show");
+                $("#search_message").text(data.message);
+              } else {
+                $("#myAutocomplete").val("");
+                $(".search_alert").addClass("show");
+                $("#search_message").text("Server is busy! Please try later.");
+              }
+            },
+          });
+        }
+      });
+
+      $.widget("custom.catcomplete", $.ui.autocomplete, {
+        _create: function () {
+          this._super();
+          this.widget().menu(
+            "option",
+            "items",
+            "> :not(.ui-autocomplete-category)"
+          );
+        },
+        _renderMenu: function (ul, items) {
+          var that = this,
+            currentCategory = "";
+          $.each(items, function (index, item) {
+            var li;
+            if (item.category != currentCategory) {
+              ul.append(
+                "<li class='ui-autocomplete-category'>" +
+                  `<img src=${item.image} class= 'image' alt=''>` +
+                  " " +
+                  item.category.toUpperCase() +
+                  "</li>"
+              );
+              currentCategory = item.category;
+            }
+            li = that._renderItemData(ul, item);
+          });
+        },
+      });
+    </script>
+
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+
+      .wrapper {
+        position: relative;
+        box-sizing: border-box;
+        min-height: 100%;
+        padding-bottom: 100px;
+      }
+
+      .footer {
+        background-color: #e3f2fd;
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        height: 60px;
+      }
+      .image {
+        height: 30px;
+        width: 30px;
+        border-radius: 50%;
+      }
+
+      .ui-autocomplete-category {
+        font-weight: bold;
+        padding: 0.2em 0.4em;
+        margin: 0.8em 0 0.2em;
+        line-height: 1.5;
+      }
+
+      .ui-menu-item-wrapper {
+        margin-left: 5px;
+      }
+
+      .myCustom {
+        position: relative;
+        margin-left: -15px;
+      }
+
+      .myCustom .search_text {
+        border: none;
+        width: 100%;
+      }
+
+      .myCustom .search_button {
+        position: absolute;
+        right: -28px;
+        z-index: 9;
+        width: 25px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </body>
+</html>

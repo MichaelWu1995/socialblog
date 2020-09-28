@@ -1,0 +1,201 @@
+{{extend '../_layouts/home.html'}} {{block 'title'}}{{'Social Blog'}}{{/block}}
+{{block 'body'}}
+<section class="container" style="margin-top: 20px;margin-bottom: 10px;">
+  <div class="row">
+    {{include '../_partials/settings-nav.html'}}
+    <div class="col-md-6 offset-md-1" style="margin-top: 10px">
+      {{if user}}
+      <div class="subhead">
+        <h2>Profile Settings</h2>
+      </div>
+      <hr>
+      {{include '../_partials/form_alert.html'}}
+      {{include '../_partials/success_alert.html'}}
+      <form id="profile_form" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="" style="font-weight: bold">Email Address</label>
+          <p class="form-control-static">{{user.email}}</p>
+        </div>
+        <div class="form-group">
+          <label for="" style="font-weight: bold">Nickname</label>
+          <input
+            type="text"
+            class="form-control"
+            id="nickname"
+            placeholder="Enter new nickname here..."
+            value="{{user.nickname}}"
+            name="nickname"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="" style="font-weight: bold">Profile Setting</label>
+          <div>
+            <img
+              id="avatar"
+              class="avatar"
+              width="150"
+              height="150"
+              src="{{user.avatar}}"
+              alt=""
+            />
+          </div>
+          <div style="margin-top: 10px">
+            <button class="btn btn-outline-primary" id="uploadButton" type="button">
+              Upload Profile
+            </button>
+
+            <input
+              id="imagePic"
+              name="avatar"
+              type="file"
+              accept=".bmp,.jpg,.png,.jpeg,image/bmp,image/jpg,image/png,image/jpeg"
+              style="display: none"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="" style="font-weight: bold">Self-Introduction</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            name="bio"
+            placeholder="Enter your self-introduction here..."
+            maxlength="100"
+            id="bio"
+          >
+{{user.bio}}</textarea
+          >
+        </div>
+        <div class="form-group">
+          <label for="" style="font-weight: bold">Gender</label>
+          <div>
+            <label class="radio-inline">
+              <input type="radio" name="gender" id="inlineRadio1" value="-1" {{
+              user.gender==-1?'checked':null }} /> Male
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="gender" id="inlineRadio2" value="0" {{
+              user.gender==0?'checked':null }} /> Female
+            </label>
+            <label class="radio-inline">
+              <input type="radio" name="gender" id="inlineRadio3" value="1" {{
+              user.gender==1?'checked':null }} /> Others
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="exampleInputPassword1" style="font-weight: bold"
+            >Birthday</label
+          >
+          <input
+            type="text"
+            class="form-control"
+            id="birthday"
+            name="birthday"
+            placeholder="Enter your birthday here..."
+            value="{{user.birthday | dateFormat 'YYYY-MM-DD'}}"
+          />
+          <span class="input-group-addon">
+            <span class="glyphicon glyphicon-calendar"></span>
+          </span>
+        </div>
+        <button type="submit" class="btn btn-outline-success">Save</button>
+      </form>
+      {{/if}}
+    </div>
+</section>
+{{/block}} {{block 'script'}}
+<script src="/node_modules/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"></script>
+<link
+  rel="stylesheet"
+  href="/node_modules/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css"
+/>
+<script>
+  var avatar = "";
+  
+  $("#home").removeClass("active");
+    $("#infomation").removeClass("active");
+    $("#profile").addClass("active");
+
+  $("#birthday").datepicker({
+    format: "yyyy-mm-dd",
+    todayHighlight: 1,
+    autoclose: true,
+    inline: true,
+  });
+
+  $("#uploadButton").click(() => {
+    $("#imagePic").click();
+  });
+
+
+  $("#imagePic").on("change", function (e) {
+    const file = e.target.files[0];
+    avatar = file;
+    var fileTypes = ["bmp", "jpg", "png", "jpeg"];
+    var bTypeMatch = false;
+    for (var i = 0; i < fileTypes.length; i++) {
+      var start = file.name.lastIndexOf(".");
+      var fileType = file.name.substring(start + 1);
+      if (fileType.toLowerCase() == fileTypes[i]) {
+        bTypeMatch = true;
+        break;
+      }
+    }
+    if (bTypeMatch) {
+      var reader = new FileReader();
+      reader.readAsDataURL(file); // 读取文件
+      reader.onload = (arg) => {
+        $("#avatar").attr("src", arg.target.result);
+        var btnText = "Upload Again";
+        $("#uploadButton").text(btnText);
+      };
+    } else {
+      window.alert("Only support image type: bmp, jpg, png, jpeg!");
+    }
+  });
+
+
+  $("#profile_form").on("submit", function (e) {
+    e.preventDefault();
+    var nickname = $("#nickname").val();
+    var bio = $("#bio").val()
+    var gender = $('input:radio:checked').val();
+    var birthday = $("#birthday").val()
+    var formData = new FormData()
+    formData.append("bio",bio)
+    formData.append("gender", gender)
+    formData.append("birthday", birthday)
+    formData.append("nickname", nickname)
+    formData.append("avatar", avatar)
+
+    $.ajax({
+      url: "/account/settings/profile",
+      type: "post",
+      data: formData,
+      contentType: false,
+      processData: false,
+      success: (data) => {
+        var code = data.err_code;
+        if (code === 0) {
+          $(".success_alert").addClass("show");
+          $("#success_message").text("You have successfully updated your profile.");
+        } else if (code === 1) {
+          $(".form_alert").addClass("show");
+          $("#form_message").text("This nickname has been selected. Please select another!");
+        } else {
+          $(".form_alert").addClass("show");
+          $("#form_message").text("Fail to update your profile. Please try later!");
+        }
+      },
+    });
+  });
+
+
+</script>
+
+
+{{/block}}

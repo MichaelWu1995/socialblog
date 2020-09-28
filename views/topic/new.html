@@ -1,0 +1,182 @@
+{{extend '../_layouts/home.html'}} {{block 'title'}}{{'Social Blog'}}{{/block}}
+{{block 'body'}} {{if user}}
+<section class="container">
+  <div class="row box">
+    <div class="col-md-5">
+      <div class="left">
+        <div class="image-box">
+          <img src="/public/img/topic.png" alt="" class="image" />
+        </div>
+        <h2 class="text-title text-primary">Welcome to My Social Community</h2>
+        <p class="text text-primary">You can Issue your Topic Here!</p>
+      </div>
+    </div>
+    <div class="col-md-6 offset-md-1 my-auto" style="margin-top: 10px">
+      <h2>Create New Topic</h2>
+      <hr />
+      {{include '../_partials/form_alert.html'}}
+      <form id="topic_form" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="" class="form-title">Category</label>
+          <select class="form-control" name="category" id="mySelect">
+            <option>sports</option>
+            <option>diet</option>
+            <option>movie</option>
+            <option>tourism</option>
+            <option>others</option>
+          </select>
+        </div>
+        <input type="text" name="image" id="image" hidden />
+        <div class="form-group">
+          <label for="" class="form-title">Title</label>
+          <input
+            type="text"
+            class="form-control"
+            id="title"
+            placeholder="Enter the title of your information...."
+            name="title"
+            required
+            maxlength="20"
+          />
+        </div>
+        <div class="form-group">
+          <label for="" class="form-title">Content</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            name="content"
+            placeholder="Enter the content of your topic...."
+            maxlength="100"
+            id="content"
+            required
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <br />
+          <button type="submit" class="btn btn-outline-success">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{{/if}} {{/block}} {{block 'head'}}
+<style>
+  .box {
+    margin-top: 50px;
+  }
+
+  .box .left {
+    width: 100%;
+    height: 500px;
+    background-color: #d2e7f8;
+    border-radius: 10px;
+  }
+
+  .box .left .image-box {
+    display: flex;
+    justify-content: center;
+  }
+
+  .box .left .image-box .image {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    margin-top: 70px;
+  }
+
+  .box .left .text-title {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 35px;
+  }
+  .box .left .text {
+    text-align: center;
+    font-size: 20px;
+    font-style: italic;
+  }
+
+  .form-title {
+    font-weight: bold;
+    font-size: 20px;
+  }
+</style>
+
+{{/block}} {{block 'script'}}
+<script>
+  var defaultPath = "/public/img/";
+
+  $("#infomation").addClass("active");
+  $("#home").removeClass("active");
+  $("#profile").removeClass("active");
+
+  $("#image").val(defaultPath + "sports.png");
+
+  $("#mySelect").change(function (e) {
+    var selectedOption = $("#mySelect").val();
+    switch (selectedOption) {
+      case "sports":
+        $("#image").val(defaultPath + "sports.png");
+        break;
+      case "diet":
+        $("#image").val(defaultPath + "diet.png");
+        break;
+      case "movie":
+        $("#image").val(defaultPath + "movie.png");
+        break;
+      case "tourism":
+        $("#image").val(defaultPath + "tourism.png");
+        break;
+      default:
+        $("#image").val(defaultPath + "others.png");
+        break;
+    }
+  });
+
+  $("#topic_form").on("submit", function (e) {
+    e.preventDefault();
+
+    if ($("#title").val().trim().length === 0) {
+      $(".form_alert").addClass("show");
+      $("#title").val("");
+      $("#form_message").text("The title can't be empty!");
+    } else if ($("#content").val().trim().length === 0) {
+      $(".form_alert").addClass("show");
+      $("#content").val("");
+      $("#form_message").text("The content can't be empty!");
+    } else {
+      var title = $.trim($("#title").val());
+      var content = $.trim($("#content").val());
+      var image = $("#image").val();
+      var category = $("#mySelect").val();
+      var formData = new FormData();
+      formData.append("image", image);
+      formData.append("title", title);
+      formData.append("content", content);
+      formData.append("category", category);
+
+      $.ajax({
+        url: "/topic/new",
+        type: "post",
+        data: formData,
+        contentType: false,
+        processData: false,
+        dataType: "json",
+        success: (data) => {
+          var code = data.err_code;
+          var message = data.message;
+          if (code === 1) {
+            $(".form_alert").addClass("show");
+            $("#form_message").text(message);
+          } else if (code === 0) {
+            window.location.href = "/";
+          } else {
+            $(".form_alert").addClass("show");
+            $("#form_message").text("Server is busy. Please try later!");
+          }
+        },
+      });
+    }
+  });
+</script>
+
+{{/block}}

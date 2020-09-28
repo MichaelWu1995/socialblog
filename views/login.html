@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="/node_modules/bootstrap/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="/public/css/login.css" />
+  </head>
+
+  <body>
+    <div class="main">
+      <div class="header">
+        <a href="/">
+          <img src="/public/img/logo.png" alt="" class="logo" />
+        </a>
+        <h1>User Login</h1>
+      </div>
+      <div class="alert alert-danger fade collapse" role="alert">
+        <strong>Error!</strong> &nbsp;<span id="message"></span>
+        <button type="button" class="close" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="login_form">
+        <div class="form-group">
+          <label for="">Email</label>
+          <input
+            type="email"
+            class="form-control"
+            id="email"
+            name="email"
+            placeholder="Email..."
+            required
+            autofocus
+          />
+        </div>
+        <div class="form-group">
+          <label for="">Password</label>
+          <a href="" class="forgetPassword">Forget Password？</a>
+          <input
+            type="password"
+            class="form-control"
+            id="password"
+            name="password"
+            placeholder="Password..."
+            autocomplete=""
+            required
+          />
+        </div>
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" style="margin-right: 10px" />Remember Me
+          </label>
+        </div>
+        <button type="submit" class="btn btn-outline-primary btn-block">
+          Login
+        </button>
+      </form>
+      <div class="message">
+        <p>No Account? <a href="/account/register">Join us Right Now</a>.</p>
+      </div>
+    </div>
+    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script>
+      $(".close").click(function () {
+        $(".alert").removeClass("show");
+      });
+
+      $("#login_form").on("submit", function (e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+          url: "/account/login",
+          type: "post",
+          data: formData,
+          dataType: "json",
+          success: function (data) {
+            var err_code = data.err_code;
+            if (err_code === 0) {
+              // window.alert('注册成功！')
+              // 服务端重定向针对异步请求无效
+              window.location.href = "/";
+            } else if (err_code === 1) {
+              $(".alert").addClass("show");
+              $("#message").text("Email or password is invaild!");
+            } else if (err_code === 500) {
+              $(".alert").addClass("show");
+              $("#message").text("Server is busy. Please try later!");
+            }
+          },
+        });
+      });
+    </script>
+  </body>
+</html>

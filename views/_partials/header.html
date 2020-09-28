@@ -1,0 +1,101 @@
+<nav
+  class="navbar navbar-expand-md navbar-light"
+  style="background-color: #e3f2fd"
+>
+  <a href="/" class="navbar-brand"
+    ><img
+      width="150px"
+      src="/public/img/logo.png"
+      alt=""
+      style="margin-left: -10px"
+  /></a>
+
+  <form
+    class="form-inline myCustom"
+    id="search_form"
+    enctype="multipart/form-data"
+  >
+    <input
+      class="form-control mr-sm-2 search_text"
+      type="search"
+      placeholder="Search..."
+      aria-label="Search"
+      id="myAutocomplete"
+      name="topic"
+      value=""
+      required
+      maxlength="20"
+    />
+    <button type="submit" class="btn btn-outline-primary search_button">
+      Go
+    </button>
+  </form>
+
+  <button
+    type="button"
+    class="navbar-toggler"
+    data-toggle="collapse"
+    data-target="#navbarCollapse"
+  >
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+    <div class="navbar-nav ml-auto">
+      <ul class="navbar-nav">
+        <li class="nav-item active" id="home">
+          <a class="nav-link" href="/home"
+            >Home <span class="sr-only">(current)</span></a
+          >
+        </li>
+        {{if user}}
+        <li class="nav-item" id="infomation">
+          <a class="nav-link" href="/topic/new">Issue Infomation</a>
+        </li>
+        <li class="nav-item dropdown" id="profile">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="navbarDropdownMenuLink"
+            role="button"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Profile
+          </a>
+          <div class="dropdown-menu dropdown-menu-right">
+            <div class="dropdown-item">
+              <img
+                src="{{user.avatar}}"
+                alt=""
+                style="
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 50%;
+                  margin-right: 5px;
+                "
+              />
+              {{user.nickname}}
+            </div>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="/account/settings/profile"
+              >Settings</a
+            >
+            <a class="dropdown-item" href="/account/logout">Sign Out</a>
+          </div>
+        </li>
+        {{else}}
+        <a
+          class="btn btn-outline-primary navbar-btn"
+          href="/account/login"
+          style="margin-right: 10px"
+          >Login</a
+        >
+        <a class="btn btn-outline-success navbar-btn" href="/account/register"
+          >Register</a
+        >{{/if}}
+      </ul>
+    </div>
+  </div>
+</nav>

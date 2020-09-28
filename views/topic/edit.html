@@ -1,0 +1,150 @@
+{{extend '../_layouts/home.html'}} {{block 'title'}}{{'Social Blog'}}{{/block}}
+{{block 'body'}} {{if user}}
+<section class="container">
+  <div class="row box">
+    <div class="col-md-5">
+      <div class="left">
+        <div class="image-box">
+          <img src="{{topic.image}}" alt="" class="image" />
+        </div>
+        <h2 class="text-title text-primary">Welcome to My Social Community</h2>
+        <p class="text text-primary">You can Edit your Topic Here!</p>
+      </div>
+    </div>
+    <div class="col-md-6 offset-md-1 my-auto" style="margin-top: 10px">
+      <h2>Edit the Topic</h2>
+      <hr />
+      {{include '../_partials/form_alert.html'}}
+      <form id="topic_form" enctype="multipart/form-data">
+        <input type="text" value="{{topic.id}}" name="id" id="id" hidden />
+        <div class="form-group">
+          <label for="" class="form-title">Category</label>
+          <p class="form-control-static" id="topic_category">
+            {{topic.category.slice(0,1).toUpperCase()
+            +topic.category.slice(1).toLowerCase()}}
+          </p>
+        </div>
+        <div class="form-group">
+          <label for="" class="form-title">Title</label>
+          <input
+            type="text"
+            class="form-control"
+            id="title"
+            placeholder="Enter the title of your information...."
+            name="title"
+            required
+            maxlength="20"
+            value="{{topic.title}}"
+          />
+        </div>
+        <div class="form-group">
+          <label for="" class="form-title">Content</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            name="content"
+            placeholder="Enter the content of your topic...."
+            maxlength="100"
+            required
+            id="content"
+          >
+{{topic.content}}</textarea
+          >
+        </div>
+        <div class="form-group">
+          <br />
+          <button type="submit" class="btn btn-outline-success">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+{{/if}} {{/block}} {{block 'head'}}
+<style>
+  .box {
+    margin-top: 50px;
+  }
+
+  .box .left {
+    width: 100%;
+    height: 500px;
+    background-color: #d2e7f8;
+    border-radius: 10px;
+  }
+
+  .box .left .image-box {
+    display: flex;
+    justify-content: center;
+  }
+
+  .box .left .image-box .image {
+    width: 150px;
+    height: 150px;
+    margin-top: 70px;
+  }
+
+  .box .left .text-title {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 35px;
+  }
+
+  .box .left .text {
+    text-align: center;
+    font-size: 20px;
+    font-style: italic;
+  }
+
+  .form-title {
+    font-weight: bold;
+    font-size: 20px;
+  }
+</style>
+
+{{/block}} {{block 'script'}}
+<script>
+  $("#topic_form").on("submit", function (e) {
+    e.preventDefault();
+    if ($("#title").val().trim().length === 0) {
+      $(".form_alert").addClass("show");
+      $("#title").val("");
+      $("#form_message").text("The title can't be empty!");
+    } else if ($("#content").val().trim().length === 0) {
+      $(".form_alert").addClass("show");
+      $("#content").val("");
+      $("#form_message").text("The content can't be empty!");
+    } else {
+      var title = $.trim($("#title").val());
+      var content = $.trim($("#content").val());
+      var id = $("#id").val();
+      var formData = new FormData();
+      formData.append("id", id);
+      formData.append("title", title);
+      formData.append("content", content);
+
+      $.ajax({
+        url: "/topic/edit/:id",
+        type: "post",
+        data: formData,
+        contentType: false,
+        processData: false,
+        dataType: "json",
+        success: (data) => {
+          var code = data.err_code;
+          var message = data.message;
+          if (code === 1) {
+            $(".form_alert").addClass("show");
+            $("#form_message").text(message);
+          } else if (code === 0) {
+            window.location.href = "/";
+          } else {
+            $(".form_alert").addClass("show");
+            $("#form_message").text("Server is busy. Please try later!");
+          }
+        },
+      });
+    }
+  });
+</script>
+
+{{/block}}
